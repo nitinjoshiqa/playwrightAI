@@ -1,0 +1,13 @@
+node_modules/
+dist/
+playwright-report/
+test-results/
+allure-report/
+allure-results/
+.vscode/
+.idea/
+.DS_Store
+npm-debug.log
+.env
+coverage/
+*.log
