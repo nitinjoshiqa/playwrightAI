@@ -8,8 +8,12 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "outDir": "dist",
-    "rootDir": "src",
-    "types": ["@playwright/test"]
+    "rootDir": ".",
+    "types": ["@playwright/test", "node"]
   },
-  "include": ["src", "tests"]
+  "include": ["src", "tests", "rag", "scripts"],
+  "ts-node": {
+    "esm": true,
+    "experimentalEsm": true
+  }
 }

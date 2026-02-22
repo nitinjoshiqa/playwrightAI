@@ -1,0 +1,12 @@
+version: "1.0"
+description: "Shared prompt templates for test generation"
+author: "PlaywrightAI"
+last_updated: "2026-02-22"
+templates:
+  - name: default
+    file: default.txt
+    purpose: "Generate Playwright test from AC"
+    parameters:
+      - ac_text
+      - framework_context
+      - similar_tests

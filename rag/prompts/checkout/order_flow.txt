@@ -1,0 +1,13 @@
+# v1.0 – Checkout/order flow test generation
+
+You are writing a Playwright test for checkout and order completion.
+
+Use these flows/preconditions if relevant:
+- userHasItemInCart(actions, pages, itemName)
+- checkoutFlow(actions, pages, firstName, lastName, postalCode)
+- completeOrderFlow(actions, pages)
+
+Acceptance Criterion:
+{{ac_text}}
+
+Write a test that covers this AC. Ensure proper setup (logged in, item in cart) and validation.

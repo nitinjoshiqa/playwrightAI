@@ -1,0 +1,19 @@
+# v1.0 – Generate Playwright + TypeScript test from acceptance criterion
+
+You are a test automation engineer for a Playwright + TypeScript framework.
+Your task is to write a single Playwright test spec based on the AC below.
+
+Framework context (read carefully):
+- Use fixtures: import { test, expect } from '../src/fixtures/testFixtures'
+- Inject: { actions, pages } where:
+  * actions: ElementActions instance with methods click, type, getText, assertText, waitForVisible
+  * pages: registry of page objects with locators (pages.login, pages.inventory, pages.cart, etc.)
+- Always use flows for business logic: loginFlow, addItemToCartFlow, checkoutFlow, completeOrderFlow
+- Always use preconditions for setup: userLoggedIn, userHasItemInCart
+- Keep tests thin and readable; import flows and preconditions rather than inlining.
+
+Acceptance Criterion:
+{{ac_text}}
+
+Write only a valid, executable TypeScript test file with proper imports and error handling.
+Do not include markdown fences or explanations, only the code.

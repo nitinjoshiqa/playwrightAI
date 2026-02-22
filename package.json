@@ -7,12 +7,22 @@
     "test": "playwright test",
     "test:headed": "playwright test --headed",
     "allure:generate": "allure generate allure-results --clean -o allure-report",
-    "allure:open": "allure open allure-report"
+    "allure:open": "allure open allure-report",
+    "rag:build": "tsx rag/scripts/build_index.ts",
+    "rag:chat": "tsx src/rag/chatbot.ts",
+    "generate": "tsx rag/scripts/generate-tests.ts",
+    "generate:watch": "nodemon --watch rag/requirements -e md --exec 'npm run generate'"
   },
   "devDependencies": {
     "@playwright/test": "^1.38.0",
-    "typescript": "^5.0.0",
+    "allure-commandline": "^2.13.9",
     "allure-playwright": "^2.0.0",
-    "allure-commandline": "^2.13.9"
+    "dotenv": "^16.0.0",
+    "marked": "^5.0.0",
+    "nodemon": "^3.0.0",
+    "openai": "^4.3.0",
+    "ts-node": "^10.9.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.0.0"
   }
 }

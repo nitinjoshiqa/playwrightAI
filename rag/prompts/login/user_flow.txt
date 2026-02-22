@@ -1,0 +1,12 @@
+# v1.0 – Login flow test generation
+
+You are writing a Playwright test for login functionality.
+
+Use these flows/preconditions if relevant:
+- loginFlow(actions, pages, username, password)
+- userLoggedIn(actions, pages, username?, password?)
+
+Acceptance Criterion:
+{{ac_text}}
+
+Write a test that covers this AC. Keep it focused and use appropriate assertions.
