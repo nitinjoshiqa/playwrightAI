@@ -10,11 +10,16 @@
     "allure:open": "allure open allure-report",
     "rag:build": "tsx rag/scripts/build_index.ts",
     "rag:chat": "tsx src/rag/chatbot.ts",
+    "rag:test": "tsx rag/scripts/test-plugin.ts",
     "generate": "tsx rag/scripts/generate-tests.ts",
     "generate:watch": "nodemon --watch rag/requirements -e md --exec 'npm run generate'"
   },
   "devDependencies": {
     "@playwright/test": "^1.38.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/body-parser": "^1.19.6",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
     "allure-commandline": "^2.13.9",
     "allure-playwright": "^2.0.0",
     "axios": "^1.13.5",
@@ -29,6 +34,9 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "better-sqlite3": "^12.6.2"
+    "better-sqlite3": "^12.6.2",
+    "body-parser": "^2.2.2",
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
   }
 }
