@@ -4,12 +4,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ragConfig } from '../../src/rag/ragConfig';
 import {
-  loadIndex,
+  initDb,
   addRecord,
   findByText,
   clearIndex,
-} from '../../src/rag/indexStore';
-import { embedText } from '../../src/rag/chatbot';
+  closeDb,
+} from '../../src/rag/indexStorePersistent';
+import { embedText } from '../../src/rag/embedding';
 
 /**
  * Parse markdown requirement files and extract acceptance criteria
@@ -46,15 +47,18 @@ function parseRequirements(filePath: string): string[] {
 async function buildIndex(): Promise<void> {
   console.log('🏗️  Building RAG index...');
   console.log(`LLM Provider: ${ragConfig.llmProvider}`);
+  console.log(`Embedding Provider: ${ragConfig.embeddingProvider}`);
   console.log(`Index Path: ${ragConfig.indexPath}\n`);
 
-  loadIndex();
-  clearIndex();
+  // Initialize database
+  await initDb();
+  await clearIndex();
 
   const requirementsDir = path.join(process.cwd(), 'rag', 'requirements');
 
   if (!fs.existsSync(requirementsDir)) {
     console.warn(`Requirements directory not found: ${requirementsDir}`);
+    await closeDb();
     return;
   }
 
@@ -76,7 +80,7 @@ async function buildIndex(): Promise<void> {
       const id = `${file}-ac-${i + 1}`;
 
       // Check for duplicates
-      const existing = findByText(ac);
+      const existing = await findByText(ac);
       if (existing.length > 0) {
         console.log(
           `   ⚠️  AC ${i + 1} is a duplicate of ${existing[0].sourceFile}, skipping`
@@ -84,11 +88,16 @@ async function buildIndex(): Promise<void> {
         continue;
       }
 
-      // Embed the AC
+      // Embed the AC (real LLM embeddings now)
+      console.log(`   🔄 Embedding AC ${i + 1}...`);
       const embedding = await embedText(ac);
 
+      if (embedding.length === 0) {
+        console.log(`   ⚠️  Embedding failed for AC ${i + 1}, using zero vector`);
+      }
+
       // Add to index
-      addRecord({
+      await addRecord({
         id,
         text: ac,
         embedding,
@@ -101,10 +110,15 @@ async function buildIndex(): Promise<void> {
 
       console.log(`   ✅ Indexed AC ${i + 1}`);
       totalAcs++;
+
+      // Small delay to avoid rate limiting on embeddings
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
   }
 
+  await closeDb();
   console.log(`\n✨ Index built successfully! Total ACs: ${totalAcs}`);
+  console.log(`📊 Stored in SQLite database at ${ragConfig.indexPath.replace('.json', '.db')}`);
 }
 
 // Run the generator

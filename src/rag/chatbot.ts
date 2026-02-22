@@ -1,6 +1,7 @@
 import { ragConfig } from './ragConfig';
-import { loadIndex, search, getAllRecords } from './indexStore';
+import { search } from './indexStorePersistent';
 import { loadAndInterpolate } from './promptLoader';
+import { embedText as embedTextReal } from './embedding';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 
@@ -66,30 +67,10 @@ export async function callLLM(prompt: string): Promise<string> {
 }
 
 /**
- * Embed text using the configured provider
- * Returns a simple hash-based "embedding" if no real service is available
+ * Embed text (uses real LLM embeddings)
  */
 export async function embedText(text: string): Promise<number[]> {
-  // For now, return a simple hash-based embedding
-  // In production, use a real embedding API
-  const hash = simpleHash(text);
-  const embedding = new Array(384).fill(0);
-  for (let i = 0; i < 384; i++) {
-    embedding[i] = Math.sin((hash + i) / 100) * 0.5 + 0.5;
-  }
-  return embedding;
-}
-
-/**
- * Simple hash function for demo (not cryptographic)
- */
-function simpleHash(text: string): number {
-  let hash = 0;
-  for (let i = 0; i < text.length; i++) {
-    hash = ((hash << 5) - hash) + text.charCodeAt(i);
-    hash = hash & hash;
-  }
-  return Math.abs(hash);
+  return embedTextReal(text);
 }
 
 /**
@@ -101,14 +82,11 @@ export async function askChatbot(
   topKContext: number = 3
 ): Promise<string> {
   try {
-    // Load the index
-    loadIndex();
-
-    // Embed the query (simple hash for now)
+    // Embed the query
     const queryEmbedding = await embedText(userQuery);
 
     // Search for similar records
-    const similarRecords = search(queryEmbedding, topKContext);
+    const similarRecords = await search(queryEmbedding, topKContext);
     const contextText = similarRecords
       .map((r) => `- ${r.text} (source: ${r.sourceFile})`)
       .join('\n');

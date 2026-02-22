@@ -3,7 +3,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { ragConfig } from '../../src/rag/ragConfig';
-import { loadIndex, getAllRecords } from '../../src/rag/indexStore';
+import { initDb, getAllRecords, closeDb } from '../../src/rag/indexStorePersistent';
 import { askChatbot, embedText } from '../../src/rag/chatbot';
 import { loadAndInterpolate } from '../../src/rag/promptLoader';
 
@@ -128,57 +128,62 @@ async function generateTests(): Promise<void> {
     return;
   }
 
-  // Load the index
-  loadIndex();
-  const records = getAllRecords();
+  try {
+    // Initialize database
+    await initDb();
+    const records = await getAllRecords();
 
-  if (records.length === 0) {
-    console.log('ℹ️  No ACs in index. Run "npm run rag:build" first.');
-    return;
-  }
+    if (records.length === 0) {
+      console.log('ℹ️  No ACs in index. Run "npm run rag:build" first.');
+      await closeDb();
+      return;
+    }
 
-  console.log(`Found ${records.length} ACs ready for generation\n`);
+    console.log(`Found ${records.length} ACs ready for generation\n`);
 
-  let generated = 0;
-  let skipped = 0;
+    let generated = 0;
+    let skipped = 0;
 
-  for (let i = 0; i < records.length; i++) {
-    const record = records[i];
+    for (let i = 0; i < records.length; i++) {
+      const record = records[i];
 
-    // Check if test already exists
-    const filename = sanitizeFilename(record.text);
-    const testPath = path.join(generatedTestsDir, `${filename}.spec.ts`);
+      // Check if test already exists
+      const filename = sanitizeFilename(record.text);
+      const testPath = path.join(generatedTestsDir, `${filename}.spec.ts`);
 
-    if (fs.existsSync(testPath)) {
-      console.log(
-        `⏭️  Test already exists, skipping: ${filename}.spec.ts`
+      if (fs.existsSync(testPath)) {
+        console.log(
+          `⏭️  Test already exists, skipping: ${filename}.spec.ts`
+        );
+        skipped++;
+        continue;
+      }
+
+      // Generate test
+      const testCode = await generateTestForAc(
+        record.text,
+        i + 1,
+        record.sourceFile
       );
-      skipped++;
-      continue;
+
+      if (testCode) {
+        writeTestFile(filename, testCode);
+        generated++;
+
+        // Small delay to avoid rate limiting
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
     }
 
-    // Generate test
-    const testCode = await generateTestForAc(
-      record.text,
-      i + 1,
-      record.sourceFile
-    );
-
-    if (testCode) {
-      writeTestFile(filename, testCode);
-      generated++;
-
-      // Small delay to avoid rate limiting
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
+    console.log(`\n${'='.repeat(50)}`);
+    console.log(`✨ Generation complete!`);
+    console.log(`   Generated: ${generated}`);
+    console.log(`   Skipped: ${skipped}`);
+    console.log(`   Output directory: ${generatedTestsDir}`);
+    console.log(`\nNext: Run "npm test" to execute all tests`);
+  } finally {
+    await closeDb();
   }
-
-  console.log(`\n${'='.repeat(50)}`);
-  console.log(`✨ Generation complete!`);
-  console.log(`   Generated: ${generated}`);
-  console.log(`   Skipped: ${skipped}`);
-  console.log(`   Output directory: ${generatedTestsDir}`);
-  console.log(`\nNext: Run "npm test" to execute all tests`);
 }
 
 // Run the generator
